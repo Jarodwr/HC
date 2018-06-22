@@ -284,15 +284,16 @@ function Polygon:rotate(angle, cx, cy)
 	v.x,v.y = vector.add(cx,cy, vector.rotate(angle, v.x-cx, v.y-cy))
 end
 
-function Polygon:scale(s, cx,cy)
+function Polygon:scale(sx, sy, cx,cy)
 	if not (cx and cy) then
 		cx,cy = self.centroid.x, self.centroid.y
 	end
 	for i,v in ipairs(self.vertices) do
 		-- v = (v - center) * s + center
-		v.x,v.y = vector.add(cx,cy, vector.mul(s, v.x-cx, v.y-cy))
+		-- v.x,v.y = vector.add(cx,cy, vector.mul(s, v.x-cx, v.y-cy))
+		v.x,v.y = vector.add(cx,cy, vector.permul(sx, sy, v.x-cx, v.y-cy))
 	end
-	self._radius = self._radius * s
+	self._radius = self._radius * (sx > sy and sx or sy)
 end
 
 -- triangulation by the method of kong
@@ -320,12 +321,10 @@ function Polygon:triangulate()
 		next, prev = next_idx[current], prev_idx[current]
 		local p,q,r = vertices[prev], vertices[current], vertices[next]
 		if isEar(p,q,r, concave) then
-			if not areCollinear(p, q, r) then
-				triangles[#triangles+1] = newPolygon(p.x,p.y, q.x,q.y, r.x,r.y)
-				next_idx[prev], prev_idx[next] = next, prev
-				concave[q] = nil
-				n_vert, skipped = n_vert - 1, 0
-			end
+			triangles[#triangles+1] = newPolygon(p.x,p.y, q.x,q.y, r.x,r.y)
+			next_idx[prev], prev_idx[next] = next, prev
+			concave[q] = nil
+			n_vert, skipped = n_vert - 1, 0
 		else
 			skipped = skipped + 1
 			assert(skipped <= n_vert, "Cannot triangulate polygon")
