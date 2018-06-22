@@ -293,7 +293,15 @@ function Polygon:scale(sx, sy, cx,cy)
 		-- v.x,v.y = vector.add(cx,cy, vector.mul(s, v.x-cx, v.y-cy))
 		v.x,v.y = vector.add(cx,cy, vector.permul(sx, sy, v.x-cx, v.y-cy))
 	end
-	self._radius = self._radius * (sx > sy and sx or sy)
+	if sx == sy then
+		self._radius = self._radius * sx
+	else
+		self._radius = 0
+		for i = 1, #self.vertices do
+			self._radius = math.max(self._radius,
+				vector.dist(self.vertices[i].x,self.vertices[i].y, self.centroid.x,self.centroid.y))
+		end
+	end
 end
 
 -- triangulation by the method of kong
