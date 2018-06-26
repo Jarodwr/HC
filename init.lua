@@ -37,13 +37,10 @@ if common_local ~= common then
 	common_local, common = common, common_local
 end
 
-local newPolygonShape = Shapes.newPolygonShape
-local newCircleShape  = Shapes.newCircleShape
-local newPointShape   = Shapes.newPointShape
-
 local HC = {}
 function HC:init(cell_size)
 	self.hash = common_local.instance(Spatialhash, cell_size or 100)
+	self._shapes = {}
 end
 
 -- spatial hash management
@@ -58,29 +55,14 @@ end
 
 function HC:register(shape)
 	self.hash:register(shape, shape:bbox())
+	self._shapes[shape] = true
 	return shape
 end
 
 function HC:remove(shape)
 	self.hash:remove(shape, shape:bbox())
+	self._shapes[shape] = false
 	return self
-end
-
--- shape constructors
-function HC:polygon(...)
-	return self:register(newPolygonShape(...))
-end
-
-function HC:rectangle(x,y,w,h)
-	return self:polygon(x,y, x+w,y, x+w,y+h, x,y+h)
-end
-
-function HC:circle(x,y,r)
-	return self:register(newCircleShape(x,y,r))
-end
-
-function HC:point(x,y)
-	return self:register(newPointShape(x,y))
 end
 
 -- collision detection
@@ -107,19 +89,7 @@ end
 HC = common_local.class('HardonCollider', HC)
 local instance = common_local.instance(HC)
 
--- the module
-return setmetatable({
-	new       = function(...) return common_local.instance(HC, ...) end,
-	resetHash = function(...) return instance:resetHash(...) end,
-	register  = function(...) return instance:register(...) end,
-	remove    = function(...) return instance:remove(...) end,
-
-	polygon   = function(...) return instance:polygon(...) end,
-	rectangle = function(...) return instance:rectangle(...) end,
-	circle    = function(...) return instance:circle(...) end,
-	point     = function(...) return instance:point(...) end,
-
-	neighbors  = function(...) return instance:neighbors(...) end,
-	collisions = function(...) return instance:collisions(...) end,
-	hash       = function() return instance.hash end,
-}, {__call = function(_, ...) return common_local.instance(HC, ...) end})
+return {
+	instance = function(...) return common_local.instance(HC, ...) end,
+	shapes = Shapes
+}

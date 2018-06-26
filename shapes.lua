@@ -418,6 +418,8 @@ end
 function ConcavePolygonShape:scale(sx, sy)
 	assert(type(sx) == "number" and sx > 0, "Invalid argument. Scale must be greater than 0")
 	assert(type(sy) == "number" and sy > 0, "Invalid argument. Scale must be greater than 0")
+	local rot = self._rotation
+	self:rotate(-self._rotation)
 	local cx, cy = self:center()
 	self._polygon:scale(sx, sy, cx, cy)
 	for _, p in ipairs(self._shapes) do
@@ -425,12 +427,16 @@ function ConcavePolygonShape:scale(sx, sy)
 		p:scale(sx, sy)
 		p:moveTo(cx - dx * sx, cy - dy * sy)
 	end
+	self:rotate(rot)
 end
 
 function ConvexPolygonShape:scale(sx, sy)
 	assert(type(sx) == "number" and sx > 0, "Invalid argument. Scale must be greater than 0")
 	assert(type(sy) == "number" and sy > 0, "Invalid argument. Scale must be greater than 0")
+	local rot = self._rotation
+	self:rotate(-self._rotation)
 	self._polygon:scale(sx, sy, self:center())
+	self:rotate(rot)
 end
 
 function CircleShape:scale(s)
